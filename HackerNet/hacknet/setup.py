@@ -1,13 +1,13 @@
 import setuptools
 
 setuptools.setup(
-    name="HackerServer",
+    name="hackerserver",
     install_requires=[
         "flask",
         "flask-wtf",
-        "sqlite",
         "gunicorn",
         "psycopg2-binary",
         "peewee",
+        "pycryptodome",
     ],
 )
