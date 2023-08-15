@@ -1,0 +1,19 @@
+{% extends "inheritme.html" %}
+{% block content %}
+<table class="table">
+    <tr>
+        <th scope="col">Pwner</th>
+        <th scope="col">File</th>
+        <th scope="col">Time</th>
+        <th scope="col">Key</th>
+    </tr>
+    {% for entry in credits %}
+    <tr>
+        <td>{{entry.pwner.name}}
+        <td>{{entry.pwn.file_}}</td>
+        <td>{{entry.pwn.date.timestamp()}}</td>
+        <td>{{entry.pwn.signing_key}}</td>
+    </tr>
+    {%endfor%}
+</table>
+{% endblock %}

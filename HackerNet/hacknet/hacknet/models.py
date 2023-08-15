@@ -1,11 +1,10 @@
-import datetime
-from peewee import Model, SqliteDatabase, CharField, DateField
+from peewee import Model, SqliteDatabase, CharField, DateTimeField, ForeignKeyField
 
 db = SqliteDatabase("victims.db")
 
 
 class Victim(Model):
-    date = DateField()
+    date = DateTimeField()
     file_ = CharField()
     signing_key = CharField()
 
@@ -14,11 +13,22 @@ class Victim(Model):
 
 
 class AuthorizedToken(Model):
+    name = CharField()
     token = CharField()
 
     class Meta:
         database = db
 
 
-db.create_tables([Victim, AuthorizedToken])
-AuthorizedToken.get_or_create(token="jo7aiXieShaephaevi4Ohvengiey0kah")
+class Credits(Model):
+    pwner = ForeignKeyField(AuthorizedToken)
+    pwn = ForeignKeyField(Victim)
+
+    class Meta:
+        database = db
+
+
+db.create_tables([Victim, AuthorizedToken, Credits])
+AuthorizedToken.get_or_create(
+    name="SealedVessel", token="jo7aiXieShaephaevi4Ohvengiey0kah"
+)

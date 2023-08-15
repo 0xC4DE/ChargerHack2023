@@ -1,4 +1,5 @@
 {
+    "python.linting.pycodestyleArgs": ["--max-line-length=1000"],
     "[go]": {
 
         "editor.formatOnSave": false,

