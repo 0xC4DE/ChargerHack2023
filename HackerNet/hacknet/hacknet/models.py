@@ -5,7 +5,7 @@ db = SqliteDatabase("victims.db")
 
 
 class Victim(Model):
-    date = DateField(default=datetime.datetime.now)
+    date = DateField()
     file_ = CharField()
     signing_key = CharField()
 

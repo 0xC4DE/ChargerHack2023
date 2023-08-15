@@ -1,7 +1,10 @@
 import os
+import uuid
+import datetime
 import base64
 
 from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 
 from .models import AuthorizedToken, Victim
 
@@ -49,14 +52,16 @@ def get_signing_key():
 
     key = b"uah{k3y_3ncryp7_1ng_k3y}"
     key = base64.b64encode(key)
-    print(key)
-    cipher = AES.new(key, AES.MODE_CFB, iv=bytes(16))
+    key = key.ljust(32, b"=")
+    cipher = AES.new(key, AES.MODE_CFB, iv=bytes(AES.block_size))
 
-    pt = b"1234567890123456"
+    uuid_ = uuid.uuid1()
+    timestamp = datetime.datetime(1582, 10, 15) + datetime.timedelta(microseconds=uuid_.time//10)
+    pt = bytes(str(uuid_), encoding="UTF-8")
 
-    ct = base64.b64encode(cipher.encrypt(pt)).decode("UTF-8")
+    ct = base64.b64encode(cipher.iv+cipher.encrypt(pad(pt, AES.block_size))).decode("UTF-8")
 
-    Victim.create(file_=request.form.get("file"), signing_key=ct)
+    Victim.create(date=timestamp, file_=request.form.get("file"), signing_key=ct)
 
     return jsonify(dict(token=ct)), 200
 

@@ -19,10 +19,8 @@ type receivedtoken struct {
 
 func Decryptkey(data string) string {
 	ct, _ := base64.StdEncoding.DecodeString(data)
-
 	key := "dWFoe2szeV8zbmNyeXA3XzFuZ19rM3l9"
-	decoded_key, _ := base64.StdEncoding.DecodeString(key)
-	block, _ := aes.NewCipher([]byte(decoded_key))
+	block, _ := aes.NewCipher([]byte(key))
 
 	if len(ct) < aes.BlockSize {
 		return ""
@@ -57,7 +55,7 @@ func EncryptFile(file string) string {
 	encoded_key := receivedtoken{}
 	json.NewDecoder(res.Body).Decode(encoded_key)
 	decoded_key := Decryptkey(encoded_key.token)
-	
+
 	block, err := aes.NewCipher([]byte(decoded_key))
 	ct := make([]byte, aes.BlockSize+len(bytes))
 	iv := ct[:aes.BlockSize]
