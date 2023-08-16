@@ -19,6 +19,6 @@ for i in range(10):
     iv = ct[:AES.block_size]
     ct = ct[AES.block_size:]
 
-    cipher = AES.new(key, AES.MODE_CFB, iv)
-    pt = unpad(cipher.decrypt(ct), AES.block_size).decode("UTF-8")
+    cipher = AES.new(key, AES.MODE_CFB, iv, segment_size=128)
+    pt = cipher.decrypt(ct).decode("UTF-8")
     print(f"{pt=}")

